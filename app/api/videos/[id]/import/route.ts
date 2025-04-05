@@ -16,7 +16,8 @@ const importSchema = z.object({
   replaceExisting: z.boolean().default(false),
 })
 
-export async function POST(req: NextRequest, { params }: { params: Params }) {
+export async function POST(req: NextRequest, props: { params: Promise<Params> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {

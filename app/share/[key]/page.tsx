@@ -7,12 +7,13 @@ import Video from "@/models/Video"
 import User from "@/models/User"
 
 interface SharePageProps {
-  params: {
+  params: Promise<{
     key: string
-  }
+  }>
 }
 
-export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
+export async function generateMetadata(props: SharePageProps): Promise<Metadata> {
+  const params = await props.params;
   try {
     await dbConnect()
 
@@ -54,7 +55,8 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   }
 }
 
-export default async function SharePage({ params }: SharePageProps) {
+export default async function SharePage(props: SharePageProps) {
+  const params = await props.params;
   try {
     await dbConnect()
 

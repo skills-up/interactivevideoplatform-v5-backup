@@ -7,12 +7,13 @@ import dbConnect from "@/lib/dbConnect"
 import Video from "@/models/Video"
 
 interface VideoSettingsPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export async function generateMetadata({ params }: VideoSettingsPageProps): Promise<Metadata> {
+export async function generateMetadata(props: VideoSettingsPageProps): Promise<Metadata> {
+  const params = await props.params;
   try {
     await dbConnect()
 
@@ -37,7 +38,8 @@ export async function generateMetadata({ params }: VideoSettingsPageProps): Prom
   }
 }
 
-export default async function VideoSettingsPage({ params }: VideoSettingsPageProps) {
+export default async function VideoSettingsPage(props: VideoSettingsPageProps) {
+  const params = await props.params;
   const session = await getServerSession(authOptions)
 
   if (!session?.user) {

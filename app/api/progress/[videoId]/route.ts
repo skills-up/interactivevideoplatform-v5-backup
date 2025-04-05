@@ -10,7 +10,8 @@ const progressUpdateSchema = z.object({
   completedInteractions: z.array(z.string()),
 })
 
-export async function GET(req: NextRequest, { params }: { params: { videoId: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ videoId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -42,7 +43,8 @@ export async function GET(req: NextRequest, { params }: { params: { videoId: str
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { videoId: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ videoId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
     if (!session) {

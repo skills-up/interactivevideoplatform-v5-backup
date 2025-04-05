@@ -4,7 +4,8 @@ import { authOptions } from "@/lib/auth/auth-options"
 import { connectToDatabase } from "@/lib/db"
 import { ObjectId } from "mongodb"
 
-export async function GET(req: NextRequest, { params }: { params: { videoId: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ videoId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
 

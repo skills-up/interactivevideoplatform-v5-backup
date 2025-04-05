@@ -10,12 +10,13 @@ import { RelatedVideos } from "@/components/video/related-videos"
 import { CommentSection } from "@/components/video/comment-section"
 
 interface VideoPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export async function generateMetadata({ params }: VideoPageProps): Promise<Metadata> {
+export async function generateMetadata(props: VideoPageProps): Promise<Metadata> {
+  const params = await props.params;
   const video = await getVideoById(params.id)
 
   if (!video) {
@@ -44,7 +45,8 @@ export async function generateMetadata({ params }: VideoPageProps): Promise<Meta
   }
 }
 
-export default async function VideoPage({ params }: VideoPageProps) {
+export default async function VideoPage(props: VideoPageProps) {
+  const params = await props.params;
   const session = await getServerSession(authOptions)
   const video = await getVideoById(params.id)
 

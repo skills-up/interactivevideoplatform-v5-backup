@@ -4,7 +4,11 @@ import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/dbConnect"
 import Video from "@/models/Video"
 
-export async function GET(req: NextRequest, { params }: { params: { id: string; interactionId: string } }) {
+export async function GET(
+  req: NextRequest,
+  props: { params: Promise<{ id: string; interactionId: string }> }
+) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
 
@@ -43,7 +47,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string; 
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string; interactionId: string } }) {
+export async function PUT(
+  req: NextRequest,
+  props: { params: Promise<{ id: string; interactionId: string }> }
+) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
 

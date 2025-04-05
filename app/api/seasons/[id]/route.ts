@@ -3,7 +3,8 @@ import dbConnect from "@/lib/db/connect"
 import { Season } from "@/lib/db/models/series"
 import Video from "@/lib/db/models/video"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     await dbConnect()
 
@@ -23,7 +24,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     await dbConnect()
 
@@ -46,7 +48,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // Add a video to a season
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     await dbConnect()
 

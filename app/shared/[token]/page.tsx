@@ -5,15 +5,16 @@ import Video from "@/models/Video"
 import { SharedVideoClientPage } from "./SharedVideoClientPage"
 
 interface SharedVideoPageProps {
-  params: {
+  params: Promise<{
     token: string
-  }
-  searchParams: {
+  }>
+  searchParams: Promise<{
     password?: string
-  }
+  }>
 }
 
-export async function generateMetadata({ params }: SharedVideoPageProps): Promise<Metadata> {
+export async function generateMetadata(props: SharedVideoPageProps): Promise<Metadata> {
+  const params = await props.params;
   await dbConnect()
 
   try {
@@ -62,7 +63,9 @@ export async function generateMetadata({ params }: SharedVideoPageProps): Promis
   }
 }
 
-export default async function SharedVideoPage({ params, searchParams }: SharedVideoPageProps) {
+export default async function SharedVideoPage(props: SharedVideoPageProps) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   return <SharedVideoClientPage params={params} searchParams={searchParams} />
 }
 

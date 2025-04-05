@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react";
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { ArrowLeft, Bell, BellOff, Film, MessageSquare, Play, ThumbsUp, Users, Video } from "lucide-react"
@@ -14,12 +14,13 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { useToast } from "@/components/ui/use-toast"
 
 interface ChannelPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default function ChannelPage({ params }: ChannelPageProps) {
+export default function ChannelPage(props: ChannelPageProps) {
+  const params = use(props.params);
   const { data: session } = useSession()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(true)

@@ -5,7 +5,8 @@ import JSZip from "jszip"
 import { connectToDatabase } from "@/lib/db"
 import { ObjectId } from "mongodb"
 
-export async function POST(req: NextRequest, { params }: { params: { videoId: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ videoId: string }> }) {
+  const params = await props.params;
   try {
     // Check authentication
     const session = await getServerSession(authOptions)

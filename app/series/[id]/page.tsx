@@ -7,12 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getSeriesById, getRelatedSeries } from "@/lib/services/series-service"
 
 interface SeriesPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default async function SeriesPage({ params }: SeriesPageProps) {
+export default async function SeriesPage(props: SeriesPageProps) {
+  const params = await props.params;
   const seriesId = params.id
   const series = await getSeriesById(seriesId)
 

@@ -8,9 +8,9 @@ import EarningsPeriod from "@/models/EarningsPeriod"
 import { getEarningsBreakdown } from "@/lib/earnings-calculator"
 
 interface EarningsDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: EarningsDetailPageProps): Promise<Metadata> {
@@ -20,7 +20,8 @@ export async function generateMetadata({ params }: EarningsDetailPageProps): Pro
   }
 }
 
-export default async function EarningsDetailPage({ params }: EarningsDetailPageProps) {
+export default async function EarningsDetailPage(props: EarningsDetailPageProps) {
+  const params = await props.params;
   const session = await getServerSession(authOptions)
 
   if (!session?.user) {

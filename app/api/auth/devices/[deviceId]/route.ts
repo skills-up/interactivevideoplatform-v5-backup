@@ -4,7 +4,8 @@ import { authOptions } from "@/lib/auth/auth-options"
 import { connectToDatabase } from "@/lib/db"
 import { ObjectId } from "mongodb"
 
-export async function DELETE(req: NextRequest, { params }: { params: { deviceId: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ deviceId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
 

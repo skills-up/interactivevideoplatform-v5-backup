@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react";
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Edit, Loader2, Plus, Trash, Video } from "lucide-react"
@@ -59,7 +59,8 @@ interface Series {
   thumbnail: string
 }
 
-export default function ManageSeasonsPage({ params }: { params: { id: string } }) {
+export default function ManageSeasonsPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const router = useRouter()
   const { toast } = useToast()
   const seriesId = params.id

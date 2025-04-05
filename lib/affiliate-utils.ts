@@ -21,7 +21,7 @@ export async function trackReferral(referralCode: string): Promise<boolean> {
     if (!affiliateUser) return false
 
     // Store referral code in cookie
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
 
     // Get program for cookie duration
     const program = await AffiliateProgram.findOne({ status: "active" })
@@ -47,7 +47,7 @@ export async function trackReferral(referralCode: string): Promise<boolean> {
 
 export async function createReferral(userId: string): Promise<boolean> {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const referralCode = cookieStore.get("affiliate_code")?.value
 
     if (!referralCode) return false

@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
 import { connectToDatabase } from "@/lib/db"
 
-export async function GET(req: NextRequest, { params }: { params: { jobId: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
 

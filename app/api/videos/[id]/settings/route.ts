@@ -9,7 +9,8 @@ interface Params {
   id: string
 }
 
-export async function GET(req: NextRequest, { params }: { params: Params }) {
+export async function GET(req: NextRequest, props: { params: Promise<Params> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
@@ -60,7 +61,8 @@ const videoSettingsSchema = z.object({
   interactionSize: z.string().optional(),
 })
 
-export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<Params> }) {
+  const params = await props.params;
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) {

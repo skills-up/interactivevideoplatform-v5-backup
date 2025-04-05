@@ -6,15 +6,17 @@ import { SharedVideoPlayer } from "@/components/video/shared-video-player"
 import { PasswordProtection } from "@/components/video/password-protection"
 
 interface EmbedVideoPageProps {
-  params: {
+  params: Promise<{
     token: string
-  }
-  searchParams: {
+  }>
+  searchParams: Promise<{
     password?: string
-  }
+  }>
 }
 
-export default async function EmbedVideoPage({ params, searchParams }: EmbedVideoPageProps) {
+export default async function EmbedVideoPage(props: EmbedVideoPageProps) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   await dbConnect()
 
   // Find the share link

@@ -7,7 +7,7 @@ import { SearchBar } from "@/components/search-bar"
 import { VideoFilter } from "@/components/video-filter"
 
 interface SearchPageProps {
-  searchParams: { q: string }
+  searchParams: Promise<{ q: string }>
 }
 
 async function searchVideos(query: string) {
@@ -51,7 +51,8 @@ async function searchVideos(query: string) {
   return mockVideos
 }
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
+export default async function SearchPage(props: SearchPageProps) {
+  const searchParams = await props.searchParams;
   const query = searchParams.q || ""
   const videos = await searchVideos(query)
 

@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { connectToDatabase } from "@/lib/db"
 
-export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     const { slug } = params
 
