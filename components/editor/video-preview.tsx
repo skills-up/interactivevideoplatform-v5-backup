@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { InteractiveVideoPlayer } from "@/components/interactive-video-player"
+import InteractiveVideoPlayer from "@/components/interactive-video-player"
 
 interface InteractiveElement {
   _id: string

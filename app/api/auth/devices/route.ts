@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Get user's devices
     const devices = await db.collection("devices").find({ userId: session.user.id }).sort({ lastActive: -1 }).toArray()

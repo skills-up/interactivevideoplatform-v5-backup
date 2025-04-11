@@ -128,155 +128,140 @@ export default function SupportPage() {
           .filter((category) => category.questions.length > 0)
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 border-b bg-background">
-        <div className="container flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-6">
-            <MainNav />
-          </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <UserNav />
+    <div className="container px-4 py-6">
+      <div className="mb-6">
+        <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to home
+        </Link>
+      </div>
+
+      <div className="mx-auto max-w-5xl">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold">Help & Support</h1>
+          <p className="mt-2 text-muted-foreground">Find answers to common questions or contact our support team</p>
+        </div>
+
+        <div className="mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search for answers..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
         </div>
-      </header>
-      <main className="flex-1">
-        <div className="container px-4 py-6">
-          <div className="mb-6">
-            <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to home
-            </Link>
-          </div>
 
-          <div className="mx-auto max-w-5xl">
-            <div className="mb-8 text-center">
-              <h1 className="text-3xl font-bold">Help & Support</h1>
-              <p className="mt-2 text-muted-foreground">Find answers to common questions or contact our support team</p>
-            </div>
+        <Tabs defaultValue="faq">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="faq">
+              <HelpCircle className="mr-2 h-4 w-4" />
+              Frequently Asked Questions
+            </TabsTrigger>
+            <TabsTrigger value="contact">
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Contact Support
+            </TabsTrigger>
+          </TabsList>
 
-            <div className="mb-8">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search for answers..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+          <TabsContent value="faq" className="mt-6">
+            {filteredFaqs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8">
+                <HelpCircle className="h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-medium">No results found</h3>
+                <p className="mt-2 text-center text-muted-foreground">
+                  We couldn't find any FAQs matching your search. Try different keywords or contact support.
+                </p>
+                <Button className="mt-4" onClick={() => setSearchQuery("")}>
+                  Clear Search
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {filteredFaqs.map((category) => (
+                  <div key={category.id}>
+                    <h2 className="mb-4 text-xl font-semibold">{category.title}</h2>
+                    <div className="space-y-4">
+                      {category.questions.map((faq, index) => (
+                        <Card key={index}>
+                          <CardHeader>
+                            <CardTitle className="text-lg">{faq.question}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p>{faq.answer}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="contact" className="mt-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="md:col-span-1">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Contact Options</CardTitle>
+                    <CardDescription>Choose the best way to get in touch with us</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h3 className="font-medium">Email Support</h3>
+                      <p className="text-sm text-muted-foreground">For general inquiries and non-urgent issues</p>
+                      <p className="mt-1 text-sm">support@interactivevid.com</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Live Chat</h3>
+                      <p className="text-sm text-muted-foreground">Available Monday-Friday, 9am-5pm PST</p>
+                      <Button variant="outline" size="sm" className="mt-1">
+                        Start Chat
+                      </Button>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Phone Support</h3>
+                      <p className="text-sm text-muted-foreground">For urgent issues (Creator & Pro plans only)</p>
+                      <p className="mt-1 text-sm">+1 (555) 123-4567</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="md:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Submit a Support Ticket</CardTitle>
+                    <CardDescription>
+                      Fill out the form below and we'll get back to you as soon as possible
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {showTicketSuccess ? (
+                      <div className="flex flex-col items-center justify-center rounded-lg bg-primary/10 p-6 text-center">
+                        <CheckCircle className="h-12 w-12 text-primary" />
+                        <h3 className="mt-4 text-lg font-medium">Ticket Submitted Successfully</h3>
+                        <p className="mt-2 text-muted-foreground">
+                          Thank you for contacting us. We've received your ticket and will respond shortly. You'll
+                          receive a confirmation email with your ticket details.
+                        </p>
+                        <Button className="mt-4" onClick={() => setShowTicketSuccess(false)}>
+                          Submit Another Ticket
+                        </Button>
+                      </div>
+                    ) : (
+                      <SupportTicketForm onSuccess={handleTicketSuccess} />
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </div>
-
-            <Tabs defaultValue="faq">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="faq">
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  Frequently Asked Questions
-                </TabsTrigger>
-                <TabsTrigger value="contact">
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Contact Support
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="faq" className="mt-6">
-                {filteredFaqs.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8">
-                    <HelpCircle className="h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-4 text-lg font-medium">No results found</h3>
-                    <p className="mt-2 text-center text-muted-foreground">
-                      We couldn't find any FAQs matching your search. Try different keywords or contact support.
-                    </p>
-                    <Button className="mt-4" onClick={() => setSearchQuery("")}>
-                      Clear Search
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {filteredFaqs.map((category) => (
-                      <div key={category.id}>
-                        <h2 className="mb-4 text-xl font-semibold">{category.title}</h2>
-                        <div className="space-y-4">
-                          {category.questions.map((faq, index) => (
-                            <Card key={index}>
-                              <CardHeader>
-                                <CardTitle className="text-lg">{faq.question}</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <p>{faq.answer}</p>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="contact" className="mt-6">
-                <div className="grid gap-6 md:grid-cols-3">
-                  <div className="md:col-span-1">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Contact Options</CardTitle>
-                        <CardDescription>Choose the best way to get in touch with us</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <h3 className="font-medium">Email Support</h3>
-                          <p className="text-sm text-muted-foreground">For general inquiries and non-urgent issues</p>
-                          <p className="mt-1 text-sm">support@interactivevid.com</p>
-                        </div>
-                        <div>
-                          <h3 className="font-medium">Live Chat</h3>
-                          <p className="text-sm text-muted-foreground">Available Monday-Friday, 9am-5pm PST</p>
-                          <Button variant="outline" size="sm" className="mt-1">
-                            Start Chat
-                          </Button>
-                        </div>
-                        <div>
-                          <h3 className="font-medium">Phone Support</h3>
-                          <p className="text-sm text-muted-foreground">For urgent issues (Creator & Pro plans only)</p>
-                          <p className="mt-1 text-sm">+1 (555) 123-4567</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Submit a Support Ticket</CardTitle>
-                        <CardDescription>
-                          Fill out the form below and we'll get back to you as soon as possible
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {showTicketSuccess ? (
-                          <div className="flex flex-col items-center justify-center rounded-lg bg-primary/10 p-6 text-center">
-                            <CheckCircle className="h-12 w-12 text-primary" />
-                            <h3 className="mt-4 text-lg font-medium">Ticket Submitted Successfully</h3>
-                            <p className="mt-2 text-muted-foreground">
-                              Thank you for contacting us. We've received your ticket and will respond shortly. You'll
-                              receive a confirmation email with your ticket details.
-                            </p>
-                            <Button className="mt-4" onClick={() => setShowTicketSuccess(false)}>
-                              Submit Another Ticket
-                            </Button>
-                          </div>
-                        ) : (
-                          <SupportTicketForm onSuccess={handleTicketSuccess} />
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
-      </main>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

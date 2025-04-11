@@ -1,11 +1,16 @@
 import dbConnect from "@/lib/dbConnect"
-import Video from "@/lib/db/models/video"
+import Video from "@/models/Video"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import mongoose from "mongoose"
 
 export async function getVideoById(id: string) {
   try {
     await dbConnect()
+
+    if (! mongoose.isValidObjectId(id)) {
+      return null
+    }
 
     const video = await Video.findById(id).populate("creator", "name email").lean()
 

@@ -15,7 +15,8 @@ export function SearchBar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (query.trim()) {
-      router.push(`/videos/search?q=${encodeURIComponent(query.trim())}`)
+      router.push(`/videos/?search=${encodeURIComponent(query.trim())}`)
+      setQuery("") // Clear the input after search
     }
   }
 

@@ -60,6 +60,7 @@ import {
   Info,
   Layout,
   Github,
+  Film,
   type LucideIcon,
 } from "lucide-react"
 
@@ -144,5 +145,6 @@ export const Icons = {
   info: Info,
   dashboard: Layout,
   plus: Plus,
+  series: Film,
 }
 

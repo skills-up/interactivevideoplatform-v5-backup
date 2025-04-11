@@ -1,185 +1,249 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { getPublicVideos } from "@/lib/videos"
-import { VideoCard } from "@/components/video/video-card"
-import { ArrowRight, Play, Zap, Users, BarChart } from "lucide-react"
+import { ChevronRight, Play, Plus, TrendingUp } from "lucide-react"
 
-export default async function HomePage() {
-  const session = await getServerSession(authOptions)
-  const { videos } = await getPublicVideos(6)
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { VideoCard } from "@/components/video-card"
+import { getFeaturedVideos } from "@/lib/services/video-service"
+import { getTrendingSeries } from "@/lib/services/series-service"
+
+export default async function Home() {
+  const featuredVideos = await getFeaturedVideos(4)
+  const trendingSeries = await getTrendingSeries(3)
 
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
-        <div className="container px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
-            <div className="flex flex-col justify-center space-y-4">
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                  Create Interactive Videos That Engage Your Audience
-                </h1>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  Add quizzes, polls, hotspots, and more to your videos. Boost engagement, gather feedback, and improve
-                  learning outcomes.
-                </p>
-              </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                {session?.user ? (
-                  <Link href="/dashboard">
-                    <Button size="lg" className="gap-1.5">
-                      Go to Dashboard
-                      <ArrowRight className="h-4 w-4" />
+    <div className="flex-1">
+      <section className="container px-4 py-8 md:py-12">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold tracking-tight">Featured Videos</h2>
+          <Link href="/videos" className="flex items-center text-sm text-muted-foreground hover:text-primary">
+            View all
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Link>
+        </div>
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {featuredVideos.length > 0 ? (
+            featuredVideos.map((video) => (
+              <VideoCard
+                key={video._id}
+                title={video.title}
+                creator={video.creator.name}
+                thumbnail={video.thumbnail}
+                views={video.views}
+                date={new Date(video.createdAt).toLocaleDateString()}
+                href={`/watch/${video._id}`}
+                interactive={video.interactiveElements.length > 0}
+              />
+            ))
+          ) : (
+            // Fallback to placeholder data if no videos are available
+            <>
+              <VideoCard
+                title="Introduction to Interactive Videos"
+                creator="Tech Tutorials"
+                thumbnail="/placeholder.svg?height=200&width=350"
+                views={1240}
+                date="2 days ago"
+                href="/watch/1"
+                interactive={true}
+              />
+              <VideoCard
+                title="Choose Your Adventure: Space Exploration"
+                creator="Science Channel"
+                thumbnail="/placeholder.svg?height=200&width=350"
+                views={8750}
+                date="1 week ago"
+                href="/watch/2"
+                interactive={true}
+              />
+              <VideoCard
+                title="Interactive Cooking Tutorial: Italian Pasta"
+                creator="Cooking Masters"
+                thumbnail="/placeholder.svg?height=200&width=350"
+                views={3420}
+                date="3 days ago"
+                href="/watch/3"
+                interactive={true}
+              />
+              <VideoCard
+                title="Web Development Masterclass"
+                creator="Code Academy"
+                thumbnail="/placeholder.svg?height=200&width=350"
+                views={5680}
+                date="5 days ago"
+                href="/watch/4"
+                interactive={false}
+              />
+            </>
+          )}
+        </div>
+      </section>
+      <section className="container px-4 py-8">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold tracking-tight">Trending Series</h2>
+          <Link href="/series" className="flex items-center text-sm text-muted-foreground hover:text-primary">
+            View all
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Link>
+        </div>
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+          {trendingSeries.length > 0 ? (
+            trendingSeries.map((series, index) => (
+              <Card key={series._id}>
+                <CardContent className="p-0">
+                  <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <img
+                      src={series.thumbnail || "/placeholder.svg?height=200&width=350"}
+                      alt="Series thumbnail"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-red-500" />
+                      <span className="text-sm font-medium text-white">Trending #{index + 1}</span>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold">{series.title}</h3>
+                    <p className="text-sm text-muted-foreground">{series.creator.name}</p>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>{series.seasons?.length || 0} Seasons</span>
+                      <span>•</span>
+                      <span>
+                        {series.seasons?.reduce((total, season) => total + season.episodes.length, 0) || 0} Episodes
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between p-4 pt-0">
+                  <span className="text-sm font-medium">${series.price.toFixed(2)}/month</span>
+                  <Link href={`/series/${series._id}`}>
+                    <Button size="sm" variant="outline">
+                      View Series
                     </Button>
                   </Link>
-                ) : (
-                  <Link href="/auth/register">
-                    <Button size="lg" className="gap-1.5">
-                      Get Started
-                      <ArrowRight className="h-4 w-4" />
+                </CardFooter>
+              </Card>
+            ))
+          ) : (
+            // Fallback to placeholder data if no series are available
+            <>
+              <Card>
+                <CardContent className="p-0">
+                  <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <img
+                      src="/placeholder.svg?height=200&width=350"
+                      alt="Series thumbnail"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-red-500" />
+                      <span className="text-sm font-medium text-white">Trending #1</span>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold">Learn React from Scratch</h3>
+                    <p className="text-sm text-muted-foreground">Code Academy</p>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>3 Seasons</span>
+                      <span>•</span>
+                      <span>24 Episodes</span>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between p-4 pt-0">
+                  <span className="text-sm font-medium">$9.99/month</span>
+                  <Link href="/series/1">
+                    <Button size="sm" variant="outline">
+                      View Series
                     </Button>
                   </Link>
-                )}
-                <Link href="/videos">
-                  <Button size="lg" variant="outline" className="gap-1.5">
-                    Browse Videos
-                    <Play className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            <div className="flex justify-center lg:justify-end">
-              <div className="relative w-full max-w-[500px] aspect-video rounded-xl overflow-hidden shadow-xl">
-                <img
-                  src="/placeholder.svg?height=500&width=800"
-                  alt="Interactive Video Platform"
-                  className="object-cover w-full h-full"
-                />
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="gap-2 text-white border-white hover:bg-white/20 hover:text-white"
-                  >
-                    <Play className="h-5 w-5" />
-                    Watch Demo
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+                </CardFooter>
+              </Card>
+              <Card>
+                <CardContent className="p-0">
+                  <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <img
+                      src="/placeholder.svg?height=200&width=350"
+                      alt="Series thumbnail"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-red-500" />
+                      <span className="text-sm font-medium text-white">Trending #2</span>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold">Advanced Cooking Techniques</h3>
+                    <p className="text-sm text-muted-foreground">Cooking Masters</p>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>2 Seasons</span>
+                      <span>•</span>
+                      <span>16 Episodes</span>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between p-4 pt-0">
+                  <span className="text-sm font-medium">$7.99/month</span>
+                  <Link href="/series/2">
+                    <Button size="sm" variant="outline">
+                      View Series
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+              <Card>
+                <CardContent className="p-0">
+                  <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <img
+                      src="/placeholder.svg?height=200&width=350"
+                      alt="Series thumbnail"
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-red-500" />
+                      <span className="text-sm font-medium text-white">Trending #3</span>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold">Space Exploration Documentary</h3>
+                    <p className="text-sm text-muted-foreground">Science Channel</p>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>1 Season</span>
+                      <span>•</span>
+                      <span>8 Episodes</span>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between p-4 pt-0">
+                  <span className="text-sm font-medium">$5.99/month</span>
+                  <Link href="/series/3">
+                    <Button size="sm" variant="outline">
+                      View Series
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            </>
+          )}
         </div>
       </section>
-
-      {/* Features Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Powerful Interactive Features
-              </h2>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Everything you need to create engaging interactive videos
-              </p>
-            </div>
-          </div>
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 mt-12">
-            <div className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <Zap className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold">Interactive Elements</h3>
-              <p className="text-sm text-muted-foreground text-center">
-                Add quizzes, polls, hotspots, branching scenarios, and more to your videos.
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold">Audience Engagement</h3>
-              <p className="text-sm text-muted-foreground text-center">
-                Boost engagement and retention with interactive content that viewers love.
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <BarChart className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold">Detailed Analytics</h3>
-              <p className="text-sm text-muted-foreground text-center">
-                Track viewer engagement, quiz results, and interaction performance.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Videos Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-background">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Featured Videos</h2>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Explore interactive videos created by our community
-              </p>
-            </div>
-          </div>
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-12">
-            {videos.map((video) => (
-              <VideoCard key={video.id} video={video} />
-            ))}
-          </div>
-          <div className="flex justify-center mt-8">
-            <Link href="/videos">
-              <Button variant="outline" className="gap-1.5">
-                View All Videos
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-primary text-primary-foreground">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Ready to Create Interactive Videos?
-              </h2>
-              <p className="max-w-[900px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Join thousands of creators who are engaging their audiences with interactive content
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row">
-              {session?.user ? (
-                <Link href="/dashboard/videos/create">
-                  <Button size="lg" variant="secondary" className="gap-1.5">
-                    Create a Video
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/auth/register">
-                  <Button size="lg" variant="secondary" className="gap-1.5">
-                    Sign Up Free
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              )}
-              <Link href="/pricing">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="gap-1.5 border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10"
-                >
-                  View Pricing
+      <section className="bg-muted py-12">
+        <div className="container px-4">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight">Create Interactive Videos</h2>
+            <p className="mt-4 text-muted-foreground">
+              Import videos from YouTube, DailyMotion, or any other platform and add interactive elements to engage
+              your audience.
+            </p>
+            <div className="mt-6">
+              <Link href="/dashboard/create">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Now
                 </Button>
               </Link>
             </div>
@@ -189,4 +253,3 @@ export default async function HomePage() {
     </div>
   )
 }
-

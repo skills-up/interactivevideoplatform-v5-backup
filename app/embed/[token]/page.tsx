@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import dbConnect from "@/lib/db/connect"
+import dbConnect from "@/lib/dbConnect"
 import ShareLink from "@/models/ShareLink"
 import Video from "@/models/Video"
 import { SharedVideoPlayer } from "@/components/video/shared-video-player"

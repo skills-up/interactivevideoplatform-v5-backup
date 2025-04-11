@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 import { ObjectId } from "mongodb"
 import { generateDefaultTranscodingOptions, createTranscodingJob } from "@/lib/video-transcoder"
 
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Video ID is required" }, { status: 400 })
     }
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Get the video
     const video = await db.collection("videos").findOne({

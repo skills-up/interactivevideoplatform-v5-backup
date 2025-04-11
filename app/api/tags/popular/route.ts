@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 
 export async function GET(req: NextRequest) {
   try {
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Get popular tags based on usage count
     const tags = await db.collection("tags").find({}).sort({ count: -1 }).limit(30).toArray()

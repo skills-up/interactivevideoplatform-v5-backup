@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 import { z } from "zod"
 
 // Schema for branding settings
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Get organization ID from user
     const user = await db.collection("users").findOne({ _id: session.user.id })
@@ -92,7 +92,7 @@ export async function PUT(req: NextRequest) {
 
     const settings = validationResult.data
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Get organization ID from user
     const user = await db.collection("users").findOne({ _id: session.user.id })

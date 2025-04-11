@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
 import stripe from "@/lib/payment/stripe"
-import dbConnect from "@/lib/db/connect"
-import { Series } from "@/lib/db/models/series"
+import dbConnect from "@/lib/dbConnect"
+import { Series } from "@/models/Series"
 
 export async function POST(request: NextRequest) {
   try {

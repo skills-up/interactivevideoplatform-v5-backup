@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 import { ObjectId } from "mongodb"
 
 export async function GET(req: NextRequest) {
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
     const tags = tagsParam ? tagsParam.split(",") : []
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
     const session = await getServerSession(authOptions)
 
     let videos = []

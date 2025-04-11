@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import dbConnect from "@/lib/db/connect"
-import Interaction from "@/lib/db/models/interaction"
+import dbConnect from "@/lib/dbConnect"
+import Interaction from "@/models/Interaction"
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;

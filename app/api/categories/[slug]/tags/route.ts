@@ -1,12 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 
 export async function GET(req: NextRequest, props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   try {
     const { slug } = params
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Get category by slug
     const category = await db.collection("categories").findOne({ slug })

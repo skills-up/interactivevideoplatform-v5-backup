@@ -13,83 +13,62 @@ export default async function SeriesPage() {
   const seriesList = await getTrendingSeries(9)
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 border-b bg-background">
-        <div className="container flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-6">
-            <MainNav />
-            <SearchBar />
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <button className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-primary sm:block">
-                Creator Dashboard
-              </button>
-            </Link>
-            <ThemeToggle />
-            <UserNav />
-          </div>
-        </div>
-      </header>
-      <main className="flex-1">
-        <div className="container px-4 py-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight">Series</h1>
-            <p className="text-muted-foreground">Subscribe to series for premium interactive content</p>
-          </div>
+    <div className="container px-4 py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">Series</h1>
+        <p className="text-muted-foreground">Subscribe to series for premium interactive content</p>
+      </div>
 
-          {seriesList.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-              {seriesList.map((series, index) => (
-                <Card key={series._id}>
-                  <CardContent className="p-0">
-                    <div className="relative aspect-video overflow-hidden rounded-t-lg">
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <img
-                        src={series.thumbnail || "/placeholder.svg?height=200&width=350"}
-                        alt="Series thumbnail"
-                        className="h-full w-full object-cover"
-                      />
-                      {index < 3 && (
-                        <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                          <TrendingUp className="h-5 w-5 text-red-500" />
-                          <span className="text-sm font-medium text-white">Trending #{index + 1}</span>
-                        </div>
-                      )}
+      {seriesList.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+          {seriesList.map((series, index) => (
+            <Card key={series._id}>
+              <CardContent className="p-0">
+                <div className="relative aspect-video overflow-hidden rounded-t-lg">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <img
+                    src={series.thumbnail || "/placeholder.svg?height=200&width=350"}
+                    alt="Series thumbnail"
+                    className="h-full w-full object-cover"
+                  />
+                  {index < 3 && (
+                    <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-red-500" />
+                      <span className="text-sm font-medium text-white">Trending #{index + 1}</span>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold">{series.title}</h3>
-                      <p className="text-sm text-muted-foreground">{series.creator.name}</p>
-                      <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{series.seasons?.length || 0} Seasons</span>
-                        <span>•</span>
-                        <span>
-                          {series.seasons?.reduce((total, season) => total + season.episodes.length, 0) || 0} Episodes
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between p-4 pt-0">
-                    <span className="text-sm font-medium">${series.price.toFixed(2)}/month</span>
-                    <Link href={`/series/${series._id}`}>
-                      <Button size="sm" variant="outline">
-                        View Series
-                      </Button>
-                    </Link>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="flex h-[40vh] items-center justify-center rounded-lg border border-dashed">
-              <div className="text-center">
-                <h2 className="text-xl font-semibold">No series found</h2>
-                <p className="text-muted-foreground">Check back later for new content</p>
-              </div>
-            </div>
-          )}
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold">{series.title}</h3>
+                  <p className="text-sm text-muted-foreground">{series.creator.name}</p>
+                  <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{series.seasons?.length || 0} Seasons</span>
+                    <span>•</span>
+                    <span>
+                      {series.seasons?.reduce((total, season) => total + season.episodes.length, 0) || 0} Episodes
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between p-4 pt-0">
+                <span className="text-sm font-medium">${series.price.toFixed(2)}/month</span>
+                <Link href={`/series/${series._id}`}>
+                  <Button size="sm" variant="outline">
+                    View Series
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          ))}
         </div>
-      </main>
+      ) : (
+        <div className="flex h-[40vh] items-center justify-center rounded-lg border border-dashed">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold">No series found</h2>
+            <p className="text-muted-foreground">Check back later for new content</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

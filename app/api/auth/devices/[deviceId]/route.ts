@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 import { ObjectId } from "mongodb"
 
 export async function DELETE(req: NextRequest, props: { params: Promise<{ deviceId: string }> }) {
@@ -20,7 +20,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ device
       return NextResponse.json({ error: "Cannot remove current device" }, { status: 400 })
     }
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Verify device belongs to user
     const device = await db.collection("devices").findOne({

@@ -8,6 +8,7 @@ interface VideosPageProps {
   searchParams: {
     page?: string
     category?: string
+    search?: string
   }
 }
 
@@ -17,11 +18,11 @@ export const metadata: Metadata = {
 }
 
 export default async function VideosPage({ searchParams }: VideosPageProps) {
-  const { page, category } = await searchParams
+  const { page, category, search } = await searchParams
   const pageNum = page ? Number.parseInt(page) : 1
   const pageSize = 12
 
-  const { videos, totalCount } = await getPublicVideos(pageSize, pageNum, category)
+  const { videos, totalCount } = await getPublicVideos(pageSize, pageNum, category, search)
   const totalPages = Math.ceil(totalCount / pageSize)
 
   return (
@@ -54,7 +55,7 @@ export default async function VideosPage({ searchParams }: VideosPageProps) {
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <h2 className="text-xl font-semibold">No videos found</h2>
             <p className="text-muted-foreground mt-2">
-              {category ? `No videos found in the "${category}" category` : "No videos available at the moment"}
+              {category ? `No videos found in the "${category}" category` : (search ? `No videos found matching "${search}"` : "No videos available at the moment")}
             </p>
           </div>
         )}

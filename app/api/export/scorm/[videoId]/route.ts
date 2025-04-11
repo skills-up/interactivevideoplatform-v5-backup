@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
 import JSZip from "jszip"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 import { ObjectId } from "mongodb"
 
 export async function POST(req: NextRequest, props: { params: Promise<{ videoId: string }> }) {
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ videoId:
     const { elements } = await req.json()
 
     // Get video details from database
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
     const video = await db.collection("videos").findOne({
       _id: new ObjectId(videoId),
     })

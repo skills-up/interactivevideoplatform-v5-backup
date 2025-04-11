@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
 import stripe from "@/lib/payment/stripe"
-import dbConnect from "@/lib/db/connect"
-import Subscription from "@/lib/db/models/subscription"
-import User from "@/lib/db/models/user"
+import dbConnect from "@/lib/dbConnect"
+import Subscription from "@/models/Subscription"
+import User from "@/models/User"
 
 export async function POST(request: NextRequest) {
   const body = await request.text()

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 import { generateSecureToken } from "@/lib/video-processor"
 import { checkVideoPermission } from "@/lib/security-utils"
 
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     const token = generateSecureToken(videoId, session.user.id, expiresAt)
 
     // Log the access
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     await db.collection("videoAccess").insertOne({
       videoId,

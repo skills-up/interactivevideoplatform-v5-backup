@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import dbConnect from "@/lib/db/connect"
-import Comment from "@/lib/db/models/comment"
+import dbConnect from "@/lib/dbConnect"
+import Comment from "@/models/Comment"
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import dbConnect from "@/lib/db/connect"
-import { Series, Season } from "@/lib/db/models/series"
+import dbConnect from "@/lib/dbConnect"
+import { Series, Season } from "@/models/Series"
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;

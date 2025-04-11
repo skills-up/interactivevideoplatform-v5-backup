@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 
 export async function GET(req: NextRequest) {
   try {
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Get trending videos based on views and recency
     const videos = await db

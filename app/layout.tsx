@@ -10,6 +10,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { siteConfig } from "@/config/site"
 import { cn } from "@/lib/utils"
+import { NextAuthProvider } from "@/components/session-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -77,20 +78,18 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.className)}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <UITemplateProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <SiteHeader session={session} />
-              <main className="flex-1">{children}</main>
-              <SiteFooter />
-            </div>
-          </UITemplateProvider>
-        </ThemeProvider>
+        <NextAuthProvider session={session}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <UITemplateProvider>
+              <div className="relative flex min-h-screen flex-col">
+                <SiteHeader/>
+                <main className="flex-1">{children}</main>
+                <SiteFooter />
+              </div>
+            </UITemplateProvider>
+          </ThemeProvider>
+        </NextAuthProvider>
       </body>
     </html>
   )
 }
-
-
-
-import './globals.css'

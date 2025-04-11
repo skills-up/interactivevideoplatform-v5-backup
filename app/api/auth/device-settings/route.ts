@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 import { z } from "zod"
 
 // Schema for device settings
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Get user's device settings
     const settings = await db.collection("userSettings").findOne({ userId: session.user.id })
@@ -61,7 +61,7 @@ export async function PUT(req: NextRequest) {
 
     const settings = validationResult.data
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Update user's device settings
     await db.collection("userSettings").updateOne(

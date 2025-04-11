@@ -2,12 +2,13 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { getVideoById, incrementVideoViews } from "@/lib/videos"
+import { incrementVideoViews } from "@/lib/videos"
 import { VideoPlayer } from "@/components/video/video-player"
 import { VideoActions } from "@/components/video/video-actions"
 import { VideoInfo } from "@/components/video/video-info"
 import { RelatedVideos } from "@/components/video/related-videos"
 import { CommentSection } from "@/components/video/comment-section"
+import { getVideoById } from "@/lib/services/video-service"
 
 interface VideoPageProps {
   params: Promise<{

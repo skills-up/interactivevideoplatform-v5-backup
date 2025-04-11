@@ -6,7 +6,7 @@ import { EarningsSummary } from "./earnings-summary"
 import { EarningsHistory } from "./earnings-history"
 import { PayoutAccounts } from "./payout-accounts"
 import { PayoutHistory } from "./payout-history"
-import { PayoutSettings } from "./payout-settings"
+// import { PayoutSettings } from "./payout-settings"
 import type {
   PayoutAccount,
   PayoutTransaction,
@@ -68,9 +68,9 @@ export function EarningsDashboard({
           <PayoutAccounts accounts={accounts} onAccountsChange={setAccounts} />
         </TabsContent>
 
-        <TabsContent value="settings" className="mt-6">
+        {/* <TabsContent value="settings" className="mt-6">
           <PayoutSettings settings={settings} onSettingsChange={setSettings} />
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   )

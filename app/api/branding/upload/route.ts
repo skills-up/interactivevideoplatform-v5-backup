@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 import { v4 as uuidv4 } from "uuid"
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get organization ID from user
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
     const user = await db.collection("users").findOne({ _id: session.user.id })
 
     if (!user?.organizationId) {

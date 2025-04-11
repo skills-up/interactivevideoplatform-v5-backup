@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { dbConnect } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 import Interaction from "@/models/Interaction"
 import Video from "@/models/Video"
 import { getServerSession } from "next-auth"

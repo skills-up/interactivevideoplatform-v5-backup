@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 
 export async function GET(req: NextRequest, props: { params: Promise<{ jobId: string }> }) {
   const params = await props.params;
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ jobId: st
 
     const { jobId } = params
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Get the transcoding job
     const job = await db.collection("transcodingJobs").findOne({

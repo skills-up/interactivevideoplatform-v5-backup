@@ -17,8 +17,8 @@ export const siteConfig = {
       href: "/videos",
     },
     {
-      title: "Explore",
-      href: "/explore",
+      title: "Series",
+      href: "/series",
     },
     {
       title: "Pricing",
@@ -50,19 +50,24 @@ export const siteConfig = {
       icon: "dashboard",
     },
     {
-      title: "My Videos",
+      title: "Videos",
       href: "/dashboard/videos",
       icon: "video",
     },
     {
-      title: "Create",
-      href: "/dashboard/videos/create",
-      icon: "plus",
+      title: "Series",
+      href: "/dashboard/series",
+      icon: "series",
     },
     {
       title: "Analytics",
       href: "/dashboard/analytics",
       icon: "barChart",
+    },
+    {
+      title: "Audience",
+      href: "/dashboard/audience",
+      icon: "users",
     },
     {
       title: "Settings",

@@ -1,7 +1,11 @@
 "use client"
 
-import { signOut } from "next-auth/react"
 import Link from "next/link"
+import { useSession, signOut } from "next-auth/react"
+import { CreditCard, LogOut, Settings, User, Video, LayoutDashboard } from "lucide-react"
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,57 +13,78 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { User } from "@/types/user"
 
-interface UserNavProps {
-  user: User
-}
+export function UserNav() {
+  const { data: session, status } = useSession()
 
-export function UserNav({ user }: UserNavProps) {
-  const initials = user?.name
-    ? user.name
+  if (status === "loading") {
+    return <div className="h-8 w-8 animate-pulse rounded-full bg-muted"></div>
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="flex items-center gap-4">
+        <Link href="/auth/login">
+          <Button size="sm">
+            Sign In
+          </Button>
+        </Link>
+      </div>
+    )
+  }
+
+  const { name, email, image } = session.user
+  const initials = name
+    ? name
         .split(" ")
         .map((n) => n[0])
         .join("")
+        .toUpperCase()
     : "U"
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="h-8 w-8 cursor-pointer">
-          <AvatarImage src={user?.image || ""} alt={user?.name || "Guest"} />
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={image || ""} alt={name || "User"} />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+            <p className="text-sm font-medium leading-none">{name}</p>
+            <p className="text-xs leading-none text-muted-foreground">{email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
+            <Link href="/profile">
+              <User className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
             <Link href="/dashboard">
-              Dashboard
-              <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/dashboard/videos">
-              My Videos
-              <DropdownMenuShortcut>⌘V</DropdownMenuShortcut>
+            <Link href="/subscriptions">
+              <CreditCard className="mr-2 h-4 w-4" />
+              <span>Subscriptions</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/dashboard/settings">
-              Settings
-              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+            <Link href="/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -71,8 +96,8 @@ export function UserNav({ user }: UserNavProps) {
             signOut({ callbackUrl: "/" })
           }}
         >
-          Log out
-          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

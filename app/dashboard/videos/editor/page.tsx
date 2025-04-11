@@ -12,7 +12,6 @@ import { InteractiveElementForm } from "@/components/editor/interactive-element-
 import { VideoPreview } from "@/components/editor/video-preview"
 import { RequireAuth } from "@/components/auth/require-auth"
 import { Permission } from "@/lib/auth/permissions"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { VideoSettings } from "@/components/editor/video-settings"
 import { ImportExport } from "@/components/editor/import-export"
 import { InteractionTemplates, InteractionTemplate } from "@/components/editor/interaction-templates"
@@ -289,140 +288,137 @@ export default function VideoEditorPage() {
 
   return (
     <RequireAuth permission={Permission.CREATE_VIDEO}>
-      <div className="flex min-h-screen flex-col">
-        <DashboardHeader />
-        <div className="container px-4 py-6">
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/dashboard/videos"
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-primary"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to videos
-              </Link>
-              <h1 className="text-2xl font-bold">{videoTitle}</h1>
-            </div>
-            <div className="flex gap-2">
-              <ShareEmbedDialog videoId={videoId} videoTitle={videoTitle} />
-              <Button onClick={handleSave} disabled={isSaving}>
-                <Save className="mr-2 h-4 w-4" />
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
+      <div className="container px-4 py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/dashboard/videos"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-primary"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to videos
+            </Link>
+            <h1 className="text-2xl font-bold">{videoTitle}</h1>
           </div>
+          <div className="flex gap-2">
+            <ShareEmbedDialog videoId={videoId} videoTitle={videoTitle} />
+            <Button onClick={handleSave} disabled={isSaving}>
+              <Save className="mr-2 h-4 w-4" />
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="editor">Editor</TabsTrigger>
-              <TabsTrigger value="templates">Templates</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-              <TabsTrigger value="export">Import/Export</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="editor" className="space-y-4">
-              <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-2 space-y-6">
-                  <div className="rounded-lg border">
-                    <VideoPreview
-                      videoUrl={videoUrl}
-                      currentTime={currentTime}
-                      interactiveElements={interactiveElements.map(el => ({ ...el, _id: el.id }))}
-                      videoSettings={videoSettings}
-                      onTimeUpdate={setCurrentTime}
-                      onDurationChange={setVideoDuration}
-                    />
-                  </div>
-
-                  <div className="rounded-lg border p-4">
-                    <VideoTimeline
-                      duration={videoDuration}
-                      currentTime={currentTime}
-                      interactiveElements={interactiveElements}
-                      onTimeChange={setCurrentTime}
-                      onElementSelect={setSelectedElement}
-                    />
-                  </div>
-
-                  <div className="flex justify-center">
-                    <Button onClick={handleAddElement}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Interactive Element
-                    </Button>
-                  </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="editor">Editor</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="export">Import/Export</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="editor" className="space-y-4">
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="rounded-lg border">
+                  <VideoPreview
+                    videoUrl={videoUrl}
+                    currentTime={currentTime}
+                    interactiveElements={interactiveElements.map(el => ({ ...el, _id: el.id }))}
+                    videoSettings={videoSettings}
+                    onTimeUpdate={setCurrentTime}
+                    onDurationChange={setVideoDuration}
+                  />
                 </div>
 
-                <div>
-                  <Tabs defaultValue="properties" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="properties">Properties</TabsTrigger>
-                      <TabsTrigger value="preview">Preview</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="properties" className="rounded-lg border p-4 mt-4">
-                      {selectedElement ? (
-                        <InteractiveElementForm
-                          element={selectedElement}
-                          onUpdate={handleUpdateElement}
-                          onDelete={handleDeleteElement}
-                        />
-                      ) : (
-                        <div className="text-center py-8">
-                          <p className="text-muted-foreground">
-                            Select an interactive element on the timeline or add a new one
-                          </p>
-                        </div>
-                      )}
-                    </TabsContent>
-                    <TabsContent value="preview" className="rounded-lg border p-4 mt-4">
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="video-url">Video URL</Label>
-                          <Input
-                            id="video-url"
-                            value={videoUrl}
-                            onChange={(e) => setVideoUrl(e.target.value)}
-                            placeholder="Enter YouTube, Vimeo, or other video URL"
-                          />
-                        </div>
-                        <div>
-                          <Label>Current Time</Label>
-                          <div className="text-lg font-mono">
-                            {Math.floor(currentTime / 60)}:{(currentTime % 60).toString().padStart(2, "0")}
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Interactive Elements</Label>
-                          <div className="text-sm text-muted-foreground">{interactiveElements.length} elements added</div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
+                <div className="rounded-lg border p-4">
+                  <VideoTimeline
+                    duration={videoDuration}
+                    currentTime={currentTime}
+                    interactiveElements={interactiveElements}
+                    onTimeChange={setCurrentTime}
+                    onElementSelect={setSelectedElement}
+                  />
+                </div>
+
+                <div className="flex justify-center">
+                  <Button onClick={handleAddElement}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Interactive Element
+                  </Button>
                 </div>
               </div>
-            </TabsContent>
-            
-            <TabsContent value="templates" className="space-y-8">
-              <InteractionTemplates onSelectTemplate={handleApplyTemplate} />
-              <UITemplates onSelectTemplate={handleApplyUITemplate} />
-            </TabsContent>
-            
-            <TabsContent value="settings" className="space-y-4">
-              <VideoSettings 
-                videoId={videoId}
-                initialSettings={videoSettings}
-                onSave={handleSaveSettings}
-              />
-            </TabsContent>
-            
-            <TabsContent value="export" className="space-y-4">
-              <ImportExport 
-                videoId={videoId}
-                interactiveElements={interactiveElements.map(el => ({ ...el, _id: el.id }))}
-                onImport={handleImportElements}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+
+              <div>
+                <Tabs defaultValue="properties" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="properties">Properties</TabsTrigger>
+                    <TabsTrigger value="preview">Preview</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="properties" className="rounded-lg border p-4 mt-4">
+                    {selectedElement ? (
+                      <InteractiveElementForm
+                        element={selectedElement}
+                        onUpdate={handleUpdateElement}
+                        onDelete={handleDeleteElement}
+                      />
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">
+                          Select an interactive element on the timeline or add a new one
+                        </p>
+                      </div>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="preview" className="rounded-lg border p-4 mt-4">
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="video-url">Video URL</Label>
+                        <Input
+                          id="video-url"
+                          value={videoUrl}
+                          onChange={(e) => setVideoUrl(e.target.value)}
+                          placeholder="Enter YouTube, Vimeo, or other video URL"
+                        />
+                      </div>
+                      <div>
+                        <Label>Current Time</Label>
+                        <div className="text-lg font-mono">
+                          {Math.floor(currentTime / 60)}:{(currentTime % 60).toString().padStart(2, "0")}
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Interactive Elements</Label>
+                        <div className="text-sm text-muted-foreground">{interactiveElements.length} elements added</div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="templates" className="space-y-8">
+            <InteractionTemplates onSelectTemplate={handleApplyTemplate} />
+            <UITemplates onSelectTemplate={handleApplyUITemplate} />
+          </TabsContent>
+          
+          <TabsContent value="settings" className="space-y-4">
+            <VideoSettings 
+              videoId={videoId}
+              initialSettings={videoSettings}
+              onSave={handleSaveSettings}
+            />
+          </TabsContent>
+          
+          <TabsContent value="export" className="space-y-4">
+            <ImportExport 
+              videoId={videoId}
+              interactiveElements={interactiveElements.map(el => ({ ...el, _id: el.id }))}
+              onImport={handleImportElements}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </RequireAuth>
   )

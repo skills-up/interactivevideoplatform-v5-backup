@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-options"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 
 // Schema for progress update
 const progressUpdateSchema = z.object({
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ videoId: 
 
     const videoId = params.videoId
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
     const progress = await db.collection("videoProgress").findOne({
       userId: session.user.id,
       videoId,
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ videoId:
     const body = await req.json()
     const validatedData = progressUpdateSchema.parse(body)
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Update or create progress record
     await db.collection("videoProgress").updateOne(

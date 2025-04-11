@@ -1,118 +1,203 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { FastForward, Maximize, Minimize, Pause, Play, SkipBack, Volume, Volume2, VolumeX } from "lucide-react"
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
+
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
-import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
+import { cn } from "@/lib/utils"
 
-interface InteractiveElement {
-  id: string
+interface InteractiveElementOption {
+  text: string
+  action?: string
+  isCorrect?: boolean
+}
+
+export interface InteractiveElement {
+  _id: string
   type: "quiz" | "decision" | "hotspot" | "poll"
-  title?: string
-  question?: string
-  options?: Array<{
-    id?: string
-    text: string
-    isCorrect?: boolean
-    action?: string
-    timeCode?: number
-  }>
-  startTime: number
-  endTime?: number
-}
-
-interface VideoPlayerProps {
-  videoUrl: string
   title: string
-  interactions?: InteractiveElement[]
-  onInteractionResponse?: (interactionId: string, response: string) => void
-  autoPlay?: boolean
-  controls?: boolean
-  width?: string | number
-  height?: string | number
-  className?: string
+  description?: string
+  timestamp: number
+  duration: number
+  options?: InteractiveElementOption[]
+  position?: {
+    x: number
+    y: number
+  }
+  style?: {
+    backgroundColor: string
+    textColor: string
+    borderColor: string
+    borderRadius: string
+    fontSize: string
+    padding: string
+    opacity: string
+  }
+  optionStyle?: {
+    backgroundColor: string
+    textColor: string
+    borderColor: string
+    borderRadius: string
+    hoverColor: string
+  }
+  feedback?: {
+    correct?: string
+    incorrect?: string
+  }
 }
 
-export default function InteractiveVideoPlayer({
-  videoUrl,
-  title,
-  interactions = [],
-  onInteractionResponse,
-  autoPlay = false,
-  controls = true,
-  width = "100%",
-  height = "auto",
-  className = "",
-}: VideoPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(1)
-  const [isMuted, setIsMuted] = useState(false)
-  const [activeInteraction, setActiveInteraction] = useState<InteractiveElement | null>(null)
-  const [showControls, setShowControls] = useState(true)
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+interface VideoSettings {
+  pauseOnInteraction: boolean
+  showFeedback: boolean
+  autoAdvance: boolean
+  defaultStyle?: {
+    backgroundColor: string
+    textColor: string
+    borderColor: string
+    borderRadius: string
+    fontSize: string
+    padding: string
+    opacity: string
+  }
+  defaultOptionStyle?: {
+    backgroundColor: string
+    textColor: string
+    borderColor: string
+    borderRadius: string
+    hoverColor: string
+  }
+}
 
-  // Handle video events
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
+interface InteractiveVideoPlayerProps {
+  videoId: string
+  source: "youtube" | "dailymotion" | "vimeo" | "local"
+  url: string
+  title: string
+  interactiveElements?: InteractiveElement[]
+  videoSettings?: VideoSettings
+  className?: string
+  onTimeUpdate?: (time: number) => void
+  onDurationChange?: (duration: number) => void
+  onPlayStateChange?: (isPlaying: boolean) => void
+  initialTime?: number
+}
 
-    const onTimeUpdate = () => {
-      setCurrentTime(video.currentTime)
+export const InteractiveVideoPlayer = forwardRef<HTMLVideoElement, InteractiveVideoPlayerProps>(
+  (
+    {
+      videoId,
+      source,
+      url,
+      title,
+      interactiveElements = [],
+      videoSettings,
+      className,
+      onTimeUpdate,
+      onDurationChange,
+      onPlayStateChange,
+      initialTime = 0,
+    },
+    ref,
+  ) => {
+    const [isPlaying, setIsPlaying] = useState(false)
+    const [volume, setVolume] = useState(50)
+    const [currentTime, setCurrentTime] = useState(0)
+    const [duration, setDuration] = useState(0)
+    const [isFullscreen, setIsFullscreen] = useState(false)
+    const [showControls, setShowControls] = useState(true)
+    const [activeInteraction, setActiveInteraction] = useState<InteractiveElement | null>(null)
+    const [selectedOption, setSelectedOption] = useState<InteractiveElementOption | null>(null)
+    const [showFeedback, setShowFeedback] = useState(false)
+    const videoRef = useRef<HTMLVideoElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const { toast } = useToast()
 
-      // Check for interactions that should be shown
-      if (!activeInteraction) {
-        const interaction = interactions.find(
-          (i) => video.currentTime >= i.startTime && (!i.endTime || video.currentTime <= i.endTime),
-        )
+    // Default settings if not provided
+    const settings: VideoSettings = videoSettings || {
+      pauseOnInteraction: true,
+      showFeedback: true,
+      autoAdvance: false,
+      defaultStyle: {
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        textColor: "#ffffff",
+        borderColor: "#3b82f6",
+        borderRadius: "0.5rem",
+        fontSize: "1rem",
+        padding: "1.5rem",
+        opacity: "0.95",
+      },
+      defaultOptionStyle: {
+        backgroundColor: "transparent",
+        textColor: "#ffffff",
+        borderColor: "#ffffff",
+        borderRadius: "0.25rem",
+        hoverColor: "rgba(255, 255, 255, 0.2)",
+      },
+    }
 
-        if (interaction) {
-          setActiveInteraction(interaction)
-          if (video.paused === false) {
-            video.pause()
-            setIsPlaying(false)
-          }
+    // Handle video playback
+    const togglePlay = () => {
+      if (!videoRef.current) return
+
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play()
+      }
+
+      const newPlayState = !isPlaying
+      setIsPlaying(newPlayState)
+
+      // Call onPlayStateChange prop if provided
+      if (onPlayStateChange) {
+        onPlayStateChange(newPlayState)
+      }
+    }
+
+    // Handle volume change
+    const handleVolumeChange = (value: number[]) => {
+      if (!videoRef.current) return
+
+      const newVolume = value[0]
+      videoRef.current.volume = newVolume / 100
+      setVolume(newVolume)
+    }
+
+    // Handle seeking
+    const handleSeek = (value: number[]) => {
+      if (!videoRef.current) return
+
+      const seekTime = (value[0] / 100) * duration
+      videoRef.current.currentTime = seekTime
+      setCurrentTime(seekTime)
+    }
+
+    // Handle fullscreen toggle
+    const toggleFullscreen = () => {
+      if (!containerRef.current) return
+
+      if (!isFullscreen) {
+        if (containerRef.current.requestFullscreen) {
+          containerRef.current.requestFullscreen()
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen()
         }
       }
     }
 
-    const onLoadedMetadata = () => {
-      setDuration(video.duration)
+    // Format time in MM:SS format
+    const formatTime = (timeInSeconds: number) => {
+      const minutes = Math.floor(timeInSeconds / 60)
+      const seconds = Math.floor(timeInSeconds % 60)
+      return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
     }
 
-    const onPlay = () => {
-      setIsPlaying(true)
-    }
-
-    const onPause = () => {
-      setIsPlaying(false)
-    }
-
-    const onVolumeChange = () => {
-      setVolume(video.volume)
-      setIsMuted(video.muted)
-    }
-
-    video.addEventListener("timeupdate", onTimeUpdate)
-    video.addEventListener("loadedmetadata", onLoadedMetadata)
-    video.addEventListener("play", onPlay)
-    video.addEventListener("pause", onPause)
-    video.addEventListener("volumechange", onVolumeChange)
-
-    return () => {
-      video.removeEventListener("timeupdate", onTimeUpdate)
-      video.removeEventListener("loadedmetadata", onLoadedMetadata)
-      video.removeEventListener("play", onPlay)
-      video.removeEventListener("pause", onPause)
-      video.removeEventListener("volumechange", onVolumeChange)
-    }
-  }, [interactions, activeInteraction])
-
-  // Auto-hide controls
-  useEffect(() => {
+    // Show/hide controls on mouse movement
     const handleMouseMove = () => {
       setShowControls(true)
 
@@ -121,228 +206,369 @@ export default function InteractiveVideoPlayer({
       }
 
       controlsTimeoutRef.current = setTimeout(() => {
-        if (isPlaying) {
+        if (isPlaying && !activeInteraction) {
           setShowControls(false)
         }
       }, 3000)
     }
 
-    const container = document.querySelector(".video-container")
-    container?.addEventListener("mousemove", handleMouseMove)
+    // Handle interaction response
+    const handleInteractionResponse = (option: InteractiveElementOption) => {
+      // In a real app, you would send this interaction to the server
+      console.log("User selected:", option)
+      setSelectedOption(option)
 
-    return () => {
-      container?.removeEventListener("mousemove", handleMouseMove)
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current)
+      // Show feedback if enabled and it's a quiz
+      if (settings.showFeedback && activeInteraction?.type === "quiz" && option.isCorrect !== undefined) {
+        setShowFeedback(true)
+
+        // Auto-advance after feedback if enabled
+        if (settings.autoAdvance) {
+          setTimeout(() => {
+            setActiveInteraction(null)
+            setSelectedOption(null)
+            setShowFeedback(false)
+            if (videoRef.current && !isPlaying) {
+              videoRef.current.play()
+              setIsPlaying(true)
+            }
+          }, 3000)
+        }
+      } else {
+        // Handle action if present (e.g., jump to a specific time)
+        if (option.action && option.action.startsWith("jump:") && videoRef.current) {
+          const jumpTime = Number.parseInt(option.action.split(":")[1])
+          if (!isNaN(jumpTime)) {
+            videoRef.current.currentTime = jumpTime
+            setCurrentTime(jumpTime)
+          }
+        }
+
+        // Close the interaction if not showing feedback
+        setActiveInteraction(null)
+        setSelectedOption(null)
+      }
+
+      // Show toast for quiz answers
+      if (option.isCorrect === true) {
+        toast({
+          title: "Correct!",
+          description: activeInteraction?.feedback?.correct || "You answered correctly.",
+        })
+      } else if (option.isCorrect === false) {
+        toast({
+          title: "Incorrect",
+          description: activeInteraction?.feedback?.incorrect || "Try again!",
+        })
       }
     }
-  }, [isPlaying])
 
-  const togglePlay = () => {
-    const video = videoRef.current
-    if (!video) return
+    // Close feedback and continue
+    const handleCloseFeedback = () => {
+      setShowFeedback(false)
+      setActiveInteraction(null)
+      setSelectedOption(null)
 
-    if (video.paused) {
-      video.play()
-    } else {
-      video.pause()
+      if (videoRef.current && !isPlaying) {
+        videoRef.current.play()
+        setIsPlaying(true)
+      }
     }
-  }
 
-  const toggleMute = () => {
-    const video = videoRef.current
-    if (!video) return
+    // Update time as video plays and check for interactive elements
+    const handleTimeUpdate = () => {
+      if (!videoRef.current) return
 
-    video.muted = !video.muted
-  }
+      const currentVideoTime = videoRef.current.currentTime
+      setCurrentTime(currentVideoTime)
 
-  const handleVolumeChange = (value: number[]) => {
-    const video = videoRef.current
-    if (!video) return
+      // Call onTimeUpdate prop if provided
+      if (onTimeUpdate) {
+        onTimeUpdate(currentVideoTime)
+      }
 
-    const newVolume = value[0]
-    video.volume = newVolume
-    if (newVolume === 0) {
-      video.muted = true
-    } else if (video.muted) {
-      video.muted = false
+      // Check if any interactive elements should be shown
+      if (interactiveElements && interactiveElements.length > 0) {
+        const activeElement = interactiveElements.find(
+          (element) => currentVideoTime >= element.timestamp && currentVideoTime < element.timestamp + element.duration,
+        )
+
+        if (activeElement && !activeInteraction) {
+          setActiveInteraction(activeElement)
+          // Pause video when showing interaction if setting is enabled
+          if (settings.pauseOnInteraction && isPlaying && videoRef.current) {
+            videoRef.current.pause()
+            setIsPlaying(false)
+          }
+        } else if (!activeElement && activeInteraction && !showFeedback) {
+          setActiveInteraction(null)
+        }
+      }
     }
-  }
 
-  const handleSeek = (value: number[]) => {
-    const video = videoRef.current
-    if (!video) return
+    // Set up event listeners
+    useEffect(() => {
+      const video = videoRef.current
 
-    video.currentTime = value[0]
-  }
+      if (!video) return
 
-  const handleInteractionResponse = (response: string) => {
-    if (!activeInteraction || !onInteractionResponse) return
+      // Set initial time if provided
+      if (initialTime > 0 && video) {
+        video.currentTime = initialTime
+      }
 
-    onInteractionResponse(activeInteraction.id, response)
-    setActiveInteraction(null)
+      const handleDurationChange = () => {
+        const videoDuration = video.duration
+        setDuration(videoDuration)
 
-    // Resume playback after interaction
-    const video = videoRef.current
-    if (video) {
-      video.play()
+        // Call onDurationChange prop if provided
+        if (onDurationChange) {
+          onDurationChange(videoDuration)
+        }
+      }
+
+      const handleFullscreenChange = () => {
+        setIsFullscreen(!!document.fullscreenElement)
+      }
+
+      video.addEventListener("durationchange", handleDurationChange)
+      video.addEventListener("timeupdate", handleTimeUpdate)
+      document.addEventListener("fullscreenchange", handleFullscreenChange)
+
+      return () => {
+        video.removeEventListener("durationchange", handleDurationChange)
+        video.removeEventListener("timeupdate", handleTimeUpdate)
+        document.removeEventListener("fullscreenchange", handleFullscreenChange)
+
+        if (controlsTimeoutRef.current) {
+          clearTimeout(controlsTimeoutRef.current)
+        }
+      }
+    }, [
+      activeInteraction,
+      isPlaying,
+      settings.pauseOnInteraction,
+      showFeedback,
+      initialTime,
+      onDurationChange,
+      onTimeUpdate,
+    ])
+
+    // Get element style with fallbacks to default settings
+    const getElementStyle = (element: InteractiveElement) => {
+      return {
+        backgroundColor:
+          element.style?.backgroundColor || settings.defaultStyle?.backgroundColor || "rgba(0, 0, 0, 0.8)",
+        color: element.style?.textColor || settings.defaultStyle?.textColor || "#ffffff",
+        borderColor: element.style?.borderColor || settings.defaultStyle?.borderColor || "#3b82f6",
+        borderRadius: element.style?.borderRadius || settings.defaultStyle?.borderRadius || "0.5rem",
+        fontSize: element.style?.fontSize || settings.defaultStyle?.fontSize || "1rem",
+        padding: element.style?.padding || settings.defaultStyle?.padding || "1.5rem",
+        opacity: element.style?.opacity || settings.defaultStyle?.opacity || "0.95",
+        border: `1px solid ${element.style?.borderColor || settings.defaultStyle?.borderColor || "#3b82f6"}`,
+      }
     }
-  }
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`
-  }
-
-  const skipForward = () => {
-    const video = videoRef.current
-    if (!video) return
-
-    video.currentTime = Math.min(video.currentTime + 10, video.duration)
-  }
-
-  const skipBackward = () => {
-    const video = videoRef.current
-    if (!video) return
-
-    video.currentTime = Math.max(video.currentTime - 10, 0)
-  }
-
-  const toggleFullscreen = () => {
-    const container = document.querySelector(".video-container")
-    if (!container) return
-
-    if (document.fullscreenElement) {
-      document.exitFullscreen()
-    } else {
-      container.requestFullscreen()
+    // Get option style with fallbacks to default settings
+    const getOptionStyle = (element: InteractiveElement) => {
+      return {
+        backgroundColor:
+          element.optionStyle?.backgroundColor || settings.defaultOptionStyle?.backgroundColor || "transparent",
+        color: element.optionStyle?.textColor || settings.defaultOptionStyle?.textColor || "#ffffff",
+        borderColor: element.optionStyle?.borderColor || settings.defaultOptionStyle?.borderColor || "#ffffff",
+        borderRadius: element.optionStyle?.borderRadius || settings.defaultOptionStyle?.borderRadius || "0.25rem",
+        border: `1px solid ${element.optionStyle?.borderColor || settings.defaultOptionStyle?.borderColor || "#ffffff"}`,
+      }
     }
-  }
 
-  return (
-    <div className={`video-container relative overflow-hidden rounded-lg ${className}`}>
-      <video
-        ref={videoRef}
-        src={videoUrl}
-        autoPlay={autoPlay}
-        controls={false}
-        className="w-full h-full object-contain"
-        style={{ width, height }}
-        playsInline
-      />
+    // Get option hover style
+    const getOptionHoverStyle = (element: InteractiveElement) => {
+      return {
+        backgroundColor:
+          element.optionStyle?.hoverColor || settings.defaultOptionStyle?.hoverColor || "rgba(255, 255, 255, 0.2)",
+      }
+    }
 
-      {/* Interactive element overlay */}
-      {activeInteraction && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
-          <Card className="w-full max-w-md mx-4">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-4">{activeInteraction.title || activeInteraction.question}</h3>
+    // Render different video sources
+    const renderVideoSource = () => {
+      switch (source) {
+        case "youtube":
+          return (
+            <iframe
+              src={`${url}?enablejsapi=1`}
+              title={title}
+              className="absolute inset-0 h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          )
+        case "dailymotion":
+          return (
+            <iframe
+              src={url}
+              title={title}
+              className="absolute inset-0 h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          )
+        case "vimeo":
+          return (
+            <iframe
+              src={url}
+              title={title}
+              className="absolute inset-0 h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          )
+        case "local":
+        default:
+          return (
+            <video ref={videoRef} className="h-full w-full" onClick={togglePlay} onTimeUpdate={handleTimeUpdate}>
+              <source src={url} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          )
+      }
+    }
 
-              <div className="space-y-2">
-                {activeInteraction.options?.map((option) => (
+    // Expose the video element ref
+    useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement)
+
+    return (
+      <div
+        ref={containerRef}
+        className={cn("relative aspect-video overflow-hidden rounded-lg bg-black", className)}
+        onMouseMove={handleMouseMove}
+      >
+        {renderVideoSource()}
+
+        {/* Interactive overlay */}
+        {activeInteraction && (
+          <div
+            className="absolute"
+            style={{
+              left: activeInteraction.position ? `${activeInteraction.position.x}%` : "50%",
+              top: activeInteraction.position ? `${activeInteraction.position.y}%` : "50%",
+              transform: activeInteraction.position ? "translate(-50%, -50%)" : "translate(-50%, -50%)",
+              ...getElementStyle(activeInteraction),
+            }}
+          >
+            <h3 className="mb-2 text-lg font-bold">{activeInteraction.title}</h3>
+            {activeInteraction.description && <p className="mb-4">{activeInteraction.description}</p>}
+
+            {showFeedback && selectedOption ? (
+              <div className="space-y-4">
+                <div className={`p-3 rounded ${selectedOption.isCorrect ? "bg-green-500/20" : "bg-red-500/20"}`}>
+                  <p className="font-medium">
+                    {selectedOption.isCorrect
+                      ? activeInteraction.feedback?.correct || "Correct answer!"
+                      : activeInteraction.feedback?.incorrect || "Incorrect answer."}
+                  </p>
+                  {!selectedOption.isCorrect && activeInteraction.type === "quiz" && (
+                    <p className="mt-2">
+                      The correct answer is: {activeInteraction.options?.find((o) => o.isCorrect)?.text}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  onClick={handleCloseFeedback}
+                  className="w-full"
+                  style={{
+                    backgroundColor:
+                      activeInteraction.style?.borderColor || settings.defaultStyle?.borderColor || "#3b82f6",
+                    color: "#ffffff",
+                  }}
+                >
+                  Continue
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {activeInteraction.options?.map((option, index) => (
                   <Button
-                    key={option.id || option.text}
+                    key={index}
                     variant="outline"
-                    className="w-full justify-start text-left h-auto py-3"
-                    onClick={() => handleInteractionResponse(option.text)}
+                    className="hover:bg-white/20 hover:text-white transition-colors"
+                    style={getOptionStyle(activeInteraction)}
+                    onClick={() => handleInteractionResponse(option)}
                   >
                     {option.text}
                   </Button>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            )}
+          </div>
+        )}
 
-      {/* Video controls */}
-      {controls && (
-        <div
-          className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 ${
-            showControls ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <div className="flex flex-col gap-2">
-            {/* Progress bar */}
-            <Slider
-              value={[currentTime]}
-              min={0}
-              max={duration || 100}
-              step={0.1}
-              onValueChange={handleSeek}
-              className="cursor-pointer"
-            />
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={togglePlay}
-                  className="h-8 w-8 text-white hover:bg-white/20"
-                >
-                  {isPlaying ? <Pause size={18} /> : <Play size={18} />}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={skipBackward}
-                  className="h-8 w-8 text-white hover:bg-white/20"
-                >
-                  <SkipBack size={18} />
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={skipForward}
-                  className="h-8 w-8 text-white hover:bg-white/20"
-                >
-                  <SkipForward size={18} />
-                </Button>
-
-                <span className="text-white text-sm">
-                  {formatTime(currentTime)} / {formatTime(duration)}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 w-24">
+        {/* Video controls */}
+        {source === "local" && showControls && (
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+            <div className="flex flex-col gap-2">
+              <Slider
+                value={[(currentTime / duration) * 100 || 0]}
+                max={100}
+                step={0.1}
+                onValueChange={handleSeek}
+                className="cursor-pointer [&>span:first-child]:h-1 [&>span:first-child]:bg-white/30 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-primary [&>span:first-child_span]:bg-primary"
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={toggleMute}
+                    onClick={togglePlay}
                     className="h-8 w-8 text-white hover:bg-white/20"
                   >
-                    {isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </Button>
-
-                  <Slider
-                    value={[isMuted ? 0 : volume]}
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    onValueChange={handleVolumeChange}
-                    className="cursor-pointer"
-                  />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
+                    <SkipBack className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
+                    <FastForward className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-white hover:bg-white/20"
+                      onClick={() => handleVolumeChange([volume === 0 ? 50 : 0])}
+                    >
+                      {volume === 0 ? (
+                        <VolumeX className="h-4 w-4" />
+                      ) : volume < 50 ? (
+                        <Volume className="h-4 w-4" />
+                      ) : (
+                        <Volume2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Slider
+                      value={[volume]}
+                      max={100}
+                      step={1}
+                      onValueChange={handleVolumeChange}
+                      className="w-20 cursor-pointer [&>span:first-child]:h-1 [&>span:first-child]:bg-white/30 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-primary [&>span:first-child_span]:bg-primary"
+                    />
+                  </div>
+                  <span className="text-xs text-white">
+                    {formatTime(currentTime)} / {formatTime(duration)}
+                  </span>
                 </div>
-
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={toggleFullscreen}
                   className="h-8 w-8 text-white hover:bg-white/20"
                 >
-                  <Maximize size={18} />
+                  {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
+        )}
+      </div>
+    )
+  },
+)

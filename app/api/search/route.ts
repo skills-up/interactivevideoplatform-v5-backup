@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { connectToDatabase } from "@/lib/db"
+import dbConnect from "@/lib/dbConnect"
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    const { db } = await connectToDatabase()
+    const { db } = await dbConnect()
 
     // Create text search index
     const searchRegex = new RegExp(query, "i")

@@ -3,8 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import GithubProvider from "next-auth/providers/github"
 import bcrypt from "bcryptjs"
-import dbConnect from "@/lib/db/connect"
-import User from "@/lib/db/models/user"
+import dbConnect from "@/lib/dbConnect"
+import User from "@/models/User"
 
 export const authOptions: NextAuthOptions = {
   session: {
